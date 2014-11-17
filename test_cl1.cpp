@@ -1,43 +1,91 @@
+#define __CL_ENABLE_EXCEPTIONS
+#include <CL/cl.hpp>
+#include <utility>
+#include <fstream>
 #include <ctime>
 #include <iostream>
-using namespace std;
+#include <string>
+using namespace cl;
 
-// #include <CL/cl.h>
+// *tip* Use ldconfig after install of amd opencl to update libraries.
 
 //////////////////////////
 void timestamp();
 void showArray(double array[], int n);
+void printPlatformInfo(std::vector<Platform> & platforms);
 //////////////////////////
 
 int main(int argc, char *argv[])
 {
+	unsigned int n;
+
+	// arg inputs
+	if (argc < 2) { 
+		std::cout << "Usage: test1_cl.cpp <N>" << std::endl
+			 << "Where N = length of array" << std::endl;
+		return -1;
+    }
+    n = atoi(argv[1]);
+    n = n < 0 ? 0 : n > 100000000 ? 100000000 : n; // clamp [0 - 100000000]
+    std::cout << "Set n = " << n << " (" << n/1000000 << "M)" << std::endl;
+
 	// 1 - PRE
-	timestamp();
-
-	int n = 10;
-
 	double *a = new double[n];
 	double *b = new double[n];
 	double *c = new double[n];
 
-	for (int i = 0; i < n; ++i)
+	for (unsigned int i = 0; i < n; ++i)
 	{
 		a[i] = i;
-		b[i] = 3 + 2*i;
+		b[i] = n-i;
+		c[i] = 0;
 	}
 
-	cout << "A"; showArray(a, n); cout << endl;
-	cout << "B"; showArray(b, n); cout << endl;
+	if (n < 100)
+	{
+		std::cout << "A"; showArray(a, n); std::cout << std::endl;
+		std::cout << "B"; showArray(b, n); std::cout << std::endl;
+	}
+
+	try {
+		// Set up opencl gpu stuff
+		std::vector<Platform> platforms;
+		Platform::get(&platforms);
+		printPlatformInfo(platforms);
+
+
+		// Select the default platform and create a context using this platform and the GPU
+	    // cl_context_properties cps[3] = { 
+	    //     CL_CONTEXT_PLATFORM, 
+	    //     (cl_context_properties)(platforms[0])(), 
+	    //     0 
+	    // };
+	    // Context context( CL_DEVICE_TYPE_GPU, cps);
+	}
+	catch (Error error)
+	{
+		std::cout << "CL ERROR: " << error.what() << "(" << error.err() << ")" << std::endl;
+	}
 
 	// 2 - SIM
-	for (int i = 0; i < n; ++i)
+	//////////////////////////////////////////////////////////////////////////
+	std::cout << "Running sim..." << std::endl;
+	timestamp();
+
+	for (unsigned int i = 0; i < n; ++i)
 	{
-		c[i] = a[i] + b[i];
+		c[i] += a[i] + b[i];
 	}
-	cout << "C"; showArray(c, n); cout << endl;
+
+	timestamp();
+	std::cout << "Done." << std::endl;
+	//////////////////////////////////////////////////////////////////////////
 
 	// 3 - POST
-	timestamp();
+	if (n < 100)
+	{
+		std::cout << "C"; showArray(c, n); std::cout << std::endl;
+	}
 
 	return 0;
 }
@@ -56,7 +104,7 @@ void timestamp()
 
   std::strftime ( time_buffer, TIME_SIZE, "%d %B %Y %I:%M:%S %p", tm_ptr );
 
-  cout << time_buffer << endl;
+  std::cout << time_buffer << std::endl;
 
   return;
 # undef TIME_SIZE
@@ -64,10 +112,29 @@ void timestamp()
 
 void showArray(double array[], int n)
 {
-	cout << "[ ";
+	std::cout << "[ ";
 	for (int i = 0; i < n; ++i)
 	{
-		cout << array[i] << " ";
+		std::cout << array[i] << " ";
 	}
-	cout << "]";
+	std::cout << "]";
+}
+
+void printPlatformInfo(std::vector<Platform> & platforms)
+{
+	std::cout << "Got " << platforms.size() << " platforms." << std::endl;
+	for (std::vector<Platform>::iterator it = platforms.begin(); it != platforms.end(); ++it)
+	{
+		STRING_CLASS name, extensions, profile, vendor, version;
+		(*it).getInfo(CL_PLATFORM_NAME, &name);
+		(*it).getInfo(CL_PLATFORM_EXTENSIONS, &extensions);
+		(*it).getInfo(CL_PLATFORM_PROFILE, &profile);
+		(*it).getInfo(CL_PLATFORM_VENDOR, &vendor);
+		(*it).getInfo(CL_PLATFORM_VERSION, &version);
+		std::cout << "Platform: " << name << std::endl;
+		std::cout << "Extensions: " << extensions << std::endl;
+		std::cout << "Profile: " << profile << std::endl;
+		std::cout << "Vendor: " << vendor << std::endl;
+		std::cout << "Version: " << version << std::endl;
+	}
 }
