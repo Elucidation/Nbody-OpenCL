@@ -35,3 +35,5 @@ Simulation completed in 0.000346 seconds.
 16 November 2014 11:45:04 PM
 Done.
 ```
+
+*note* : Learning from http://www.thebigblob.com/using-the-cpp-bindings-for-opencl/
