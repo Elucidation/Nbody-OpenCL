@@ -1,7 +1,7 @@
 #include <ctime>
 #include <iostream>
 
-typedef int arr_type;
+typedef float arr_type;
 
 //////////////////////////
 void timestamp();
@@ -29,8 +29,8 @@ int main(int argc, char *argv[])
 
     for (unsigned int i = 0; i < n; ++i)
     {
-        a[i] = i;
-        b[i] = n-i;
+        a[i] = float(i) + float(i)/10.0;
+        b[i] = n-a[i] + 0.123;
         c[i] = 0;
     }
 
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     {
         c[i] += a[i] + b[i];
     }
-    
+
     clock_t t2 = clock();
     std::cout << "Simulation completed in " << double(t2-t1)/CLOCKS_PER_SEC << " seconds.\n";
     timestamp();

@@ -9,7 +9,7 @@ using namespace cl;
 
 // *tip* Use ldconfig after install of amd opencl to update libraries.
 
-typedef int arr_type;
+typedef float arr_type;
 
 //////////////////////////
 void timestamp();
@@ -39,8 +39,8 @@ int main(int argc, char *argv[])
 
     for (unsigned int i = 0; i < n; ++i)
     {
-        a[i] = i;
-        b[i] = n-i;
+        a[i] = float(i) + float(i)/10.0;
+        b[i] = n-a[i] + 0.123;
         c[i] = 0;
     }
 
