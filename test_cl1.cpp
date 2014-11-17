@@ -2,7 +2,7 @@
 #include <iostream>
 using namespace std;
 
-#include <CL/cl.h>
+// #include <CL/cl.h>
 
 //////////////////////////
 void timestamp();
