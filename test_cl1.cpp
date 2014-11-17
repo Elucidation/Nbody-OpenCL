@@ -49,18 +49,21 @@ int main(int argc, char *argv[])
 
 	try {
 		// Set up opencl gpu stuff
+
+		// Get all platforms
 		std::vector<Platform> platforms;
 		Platform::get(&platforms);
 		printPlatformInfo(platforms);
 
-
 		// Select the default platform and create a context using this platform and the GPU
-	    // cl_context_properties cps[3] = { 
-	    //     CL_CONTEXT_PLATFORM, 
-	    //     (cl_context_properties)(platforms[0])(), 
-	    //     0 
-	    // };
-	    // Context context( CL_DEVICE_TYPE_GPU, cps);
+	    cl_context_properties cps[3] = { 
+	        CL_CONTEXT_PLATFORM, 
+	        (cl_context_properties)(platforms[0])(), 
+	        0 
+	    };
+	    Context context( CL_DEVICE_TYPE_GPU, cps);
+
+
 	}
 	catch (Error error)
 	{
@@ -86,6 +89,10 @@ int main(int argc, char *argv[])
 	{
 		std::cout << "C"; showArray(c, n); std::cout << std::endl;
 	}
+
+	delete[] A;
+	delete[] B;
+	delete[] C;
 
 	return 0;
 }
@@ -123,6 +130,7 @@ void showArray(double array[], int n)
 void printPlatformInfo(std::vector<Platform> & platforms)
 {
 	std::cout << "Got " << platforms.size() << " platforms." << std::endl;
+	std::cout << "-----------------" << std::endl;
 	for (std::vector<Platform>::iterator it = platforms.begin(); it != platforms.end(); ++it)
 	{
 		STRING_CLASS name, extensions, profile, vendor, version;
@@ -131,10 +139,12 @@ void printPlatformInfo(std::vector<Platform> & platforms)
 		(*it).getInfo(CL_PLATFORM_PROFILE, &profile);
 		(*it).getInfo(CL_PLATFORM_VENDOR, &vendor);
 		(*it).getInfo(CL_PLATFORM_VERSION, &version);
-		std::cout << "Platform: " << name << std::endl;
-		std::cout << "Extensions: " << extensions << std::endl;
-		std::cout << "Profile: " << profile << std::endl;
-		std::cout << "Vendor: " << vendor << std::endl;
-		std::cout << "Version: " << version << std::endl;
+		std::cout << "  Platform: " << name << std::endl;
+		std::cout << "  Extensions: " << extensions << std::endl;
+		std::cout << "  Profile: " << profile << std::endl;
+		std::cout << "  Vendor: " << vendor << std::endl;
+		std::cout << "  Version: " << version << std::endl;
+		if ((it+1) != platforms.end()) {std::cout << std::endl;}
 	}
+	std::cout << "-----------------" << std::endl;
 }
