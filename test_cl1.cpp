@@ -9,9 +9,11 @@ using namespace cl;
 
 // *tip* Use ldconfig after install of amd opencl to update libraries.
 
+typedef int arr_type;
+
 //////////////////////////
 void timestamp();
-void showArray(double array[], int n);
+void showArray(arr_type array[], int n);
 void printPlatformListInfo(std::vector<Platform> & platforms);
 void printDeviceListInfo(std::vector<Device> & devices);
 //////////////////////////
@@ -31,9 +33,9 @@ int main(int argc, char *argv[])
     std::cout << "Set n = " << n << " (" << n/1000000 << "M)" << std::endl;
 
     // 1 - PRE
-    double *a = new double[n];
-    double *b = new double[n];
-    double *c = new double[n];
+    arr_type *a = new arr_type[n];
+    arr_type *b = new arr_type[n];
+    arr_type *c = new arr_type[n];
 
     for (unsigned int i = 0; i < n; ++i)
     {
@@ -54,7 +56,7 @@ int main(int argc, char *argv[])
         // Get all platforms
         std::vector<Platform> platforms;
         Platform::get(&platforms);
-        printPlatformListInfo(platforms);
+        // printPlatformListInfo(platforms);
 
         // Select the default platform and create a context using this platform and the GPU
         cl_context_properties cps[3] = { 
@@ -66,7 +68,7 @@ int main(int argc, char *argv[])
 
          // Get a list of devices on this platform
         std::vector<Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
-        printDeviceListInfo(devices);
+        // printDeviceListInfo(devices);
  
         // Create a command queue and use the first device
         CommandQueue queue = CommandQueue(context, devices[0]);
@@ -88,29 +90,51 @@ int main(int argc, char *argv[])
         Kernel kernel(program, "vector_add");
 
         // Create memory buffers
-        Buffer bufferA = Buffer(context, CL_MEM_READ_ONLY, n * sizeof(int));
-        Buffer bufferB = Buffer(context, CL_MEM_READ_ONLY, n * sizeof(int));
-        Buffer bufferC = Buffer(context, CL_MEM_WRITE_ONLY, n * sizeof(int));
+        Buffer bufferA = Buffer(context, CL_MEM_READ_ONLY, n * sizeof(arr_type));
+        Buffer bufferB = Buffer(context, CL_MEM_READ_ONLY, n * sizeof(arr_type));
+        Buffer bufferC = Buffer(context, CL_MEM_WRITE_ONLY, n * sizeof(arr_type));
+
+        // Copy arr_type arrays a & b into memory buffers
+        queue.enqueueWriteBuffer(bufferA, CL_TRUE, 0, n * sizeof(arr_type), a);
+        queue.enqueueWriteBuffer(bufferB, CL_TRUE, 0, n * sizeof(arr_type), b);
+
+        // Set arguments to kernel
+        kernel.setArg(0, bufferA);
+        kernel.setArg(1, bufferB);
+        kernel.setArg(2, bufferC);
+
+
+        // 2 - SIM
+        //////////////////////////////////////////////////////////////////////////
+        std::cout << "Running sim..." << std::endl;
+        timestamp();
+        clock_t t1 = clock();
+        // Original implementation
+        // for (unsigned int i = 0; i < n; ++i)
+        // {
+        //     c[i] += a[i] + b[i];
+        // }
+
+        // Run the kernel on specific ND range
+
+        NDRange global(n);
+        NDRange local(1);
+        queue.enqueueNDRangeKernel(kernel, NullRange, global, local);
+
+        clock_t t2 = clock();
+        std::cout << "Simulation completed in " << double(t2-t1)/CLOCKS_PER_SEC << " seconds.\n";
+        timestamp();
+        std::cout << "Done." << std::endl;
+        //////////////////////////////////////////////////////////////////////////
+
+        // Read buffer C into a local list
+        queue.enqueueReadBuffer(bufferC, CL_TRUE, 0, n * sizeof(arr_type), c);
 
     }
     catch (Error error)
     {
         std::cout << "CL ERROR: " << error.what() << "(" << error.err() << ")" << std::endl;
     }
-
-    // 2 - SIM
-    //////////////////////////////////////////////////////////////////////////
-    std::cout << "Running sim..." << std::endl;
-    timestamp();
-
-    for (unsigned int i = 0; i < n; ++i)
-    {
-        c[i] += a[i] + b[i];
-    }
-
-    timestamp();
-    std::cout << "Done." << std::endl;
-    //////////////////////////////////////////////////////////////////////////
 
     // 3 - POST
     if (n < 100)
@@ -125,6 +149,8 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+// Helper functions
+///////////////////////////////////////////////////////////////////
 void timestamp()
 {
 # define TIME_SIZE 40
@@ -145,7 +171,7 @@ void timestamp()
 # undef TIME_SIZE
 }
 
-void showArray(double array[], int n)
+void showArray(arr_type array[], int n)
 {
     std::cout << "[ ";
     for (int i = 0; i < n; ++i)
