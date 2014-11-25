@@ -1,3 +1,4 @@
 *.o
 test_cl1
+test_cl2
 test_nocl1
