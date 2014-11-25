@@ -1,4 +1,34 @@
-Open CL test
+Matrix work groups in 2D etc. example
+---
+For 2D, using work groups of size 2x2
+
+```
+./test_cl3_2d 6
+Set n = 6 (0K)
+Running sim...
+25 November 2014 02:58:54 PM
+Simulation completed in 3.4e-05 CPU seconds.
+25 November 2014 02:58:54 PM
+Done.
+A : 
+    0     0     1     1     2     2 
+    0     0     1     1     2     2 
+    3     3     4     4     5     5 
+    3     3     4     4     5     5 
+    6     6     7     7     8     8 
+    6     6     7     7     8     8 
+B : 
+    0     1     0     1     0     1 
+    2     3     2     3     2     3 
+    0     1     0     1     0     1 
+    2     3     2     3     2     3 
+    0     1     0     1     0     1 
+    2     3     2     3     2     3 
+```
+
+
+
+Array addition using OpenCL
 ---
 
 Array addition with/without OpenCL on the GPU `C = A + B` where A, B, C = float arrays of length n.
